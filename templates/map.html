@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        #map {
+            height: 100vh;
+            width: 80%;
+            float: left;
+        }
+        #menu {
+            height: 100vh;
+            width: 20%;
+            float: right;
+            background-color: #f8f9fa;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            font-family: Arial, sans-serif;
+            border-left: 1px solid #ccc;
+        }
+        .menu-item {
+            margin-bottom: 10px;
+        }
+        .menu-item label {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .menu-item label:hover {
+            background-color: #e9ecef;
+        }
+        .menu-item label.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .menu-item label.active:hover {
+            background-color: #0056b3;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #007bff;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+        }
+        .leaflet-control.leaflet-bar {
+            z-index: 1000;
+        }
+        /* Styling for the button */
+        .menu-item button {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            transition: background-color 0.3s ease;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        .menu-item button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        function showClosestPair() {
+            fetch("/api/closest_pairs?limit=1")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.closest_pairs && data.closest_pairs.length > 0) {
+                        var closestPair = data.closest_pairs[0];
+                        var meteoriteLatLng = L.latLng(closestPair.meteorite_latitude, closestPair.meteorite_longitude);
+                        var waffleHouseLatLng = L.latLng(closestPair.waffle_house_latitude, closestPair.waffle_house_longitude);
+                        
+                        var bounds = L.latLngBounds([meteoriteLatLng, waffleHouseLatLng]);
+                        
+                        map.fitBounds(bounds.pad(0.1)); 
+                    } else {
+                        console.log("No closest pair found.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching closest pair:", error);
+                });
+        }
+        
+    </script>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="menu">
+    <h2>Menu</h2>
+    <div class="menu-item">
+        <input type="checkbox" id="meteorite-checkbox" onchange="toggleMarkers('meteorite')">
+        <label for="meteorite-checkbox">Meteorite Landings</label>
+    </div>
+    <div class="menu-item">
+        <input type="checkbox" id="waffle-checkbox" onchange="toggleMarkers('waffle')">
+        <label for="waffle-checkbox">Waffle Houses</label>
+    </div>
+    <div class="menu-item">
+        <input type="checkbox" id="location-checkbox" onchange="toggleYourLocation()">
+        <label for="location-checkbox">Your Location</label>
+    </div>
+    <button class="menu-item" id="closest-pair" onclick="showClosestPair()" style="display: none;">Show Closest Pair</button>
+</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    var meteoriteMarkers = [];
+    var waffleMarkers = [];
+    var map;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        map = L.map('map').setView([37.0902, -95.7129], 4); 
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        window.toggleYourLocation = function() {
+            var locationCheckbox = document.getElementById('location-checkbox');
+            if (locationCheckbox.checked) {
+                addYouAreHereMarker();
+            } else {
+                removeYouAreHereMarker();
+            }
+            updateClosestPairVisibility(); 
+        };
+        
+        function removeYouAreHereMarker() {
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+                userLocationMarker = null;
+            }
+        }
+
+        window.toggleMarkers = function(type) {
+            var meteoriteCheckbox = document.getElementById('meteorite-checkbox');
+            var waffleCheckbox = document.getElementById('waffle-checkbox');
+            
+            if (type === 'meteorite') {
+                if (meteoriteMarkers.length > 0) {
+                    meteoriteMarkers.forEach(marker => {
+                        map.removeLayer(marker);
+                    });
+                    meteoriteMarkers = [];
+                } else {
+                    fetchMeteoriteLocations();
+                }
+            } else if (type === 'waffle') {
+                if (waffleMarkers.length > 0) {
+                    waffleMarkers.forEach(marker => {
+                        map.removeLayer(marker);
+                    });
+                    waffleMarkers = [];
+                } else {
+                    fetchWaffleHouseLocations();
+                }
+            }
+            updateClosestPairVisibility(); 
+        }
+
+        var userLocationMarker = null;
+
+        function addYouAreHereMarker() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var userLocation = L.latLng(position.coords.latitude, position.coords.longitude);
+                    if (!userLocationMarker) {
+                        userLocationMarker = L.marker(userLocation)
+                            .addTo(map)
+                            .bindPopup("You are here")
+                            .openPopup();
+                    } else {
+                        map.removeLayer(userLocationMarker);
+                        userLocationMarker = null;
+                    }
+                });
+            } else {
+                console.log("Geolocation error");
+            }
+        }
+
+        function fetchMeteoriteLocations() {
+            fetch("/api/meteorite_landings")
+                .then(response => response.json())
+                .then(data => {
+                    data.meteorite_landings.forEach(meteorite => {
+                        var marker = L.marker([parseFloat(meteorite.latitude), parseFloat(meteorite.longitude)], {
+                            icon: L.icon({
+                                iconUrl: '/static/meteorite.png',
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 30]
+                            })
+                        }).bindPopup(meteorite.name).addTo(map);
+
+                        meteoriteMarkers.push(marker);
+                    });
+                });
+        }
+
+        function fetchWaffleHouseLocations() {
+            fetch("/api/waffle_houses")
+                .then(response => response.json())
+                .then(data => {
+                    data.waffle_houses.forEach(waffleHouse => {
+                        var marker = L.marker([parseFloat(waffleHouse.latitude), parseFloat(waffleHouse.longitude)], {
+                            icon: L.icon({
+                                iconUrl: '/static/waffle.png',
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 30]
+                            })
+                        }).bindPopup(waffleHouse.name).addTo(map);
+
+                        waffleMarkers.push(marker);
+                    });
+                });
+        }
+
+        function updateClosestPairVisibility() {
+            var meteoriteCheckbox = document.getElementById('meteorite-checkbox');
+            var waffleCheckbox = document.getElementById('waffle-checkbox');
+            var closestPairMenuItem = document.getElementById('closest-pair');
+
+            if (meteoriteMarkers.length > 0 || waffleMarkers.length > 0) {
+                closestPairMenuItem.style.display = 'block'; 
+            } else {
+                closestPairMenuItem.style.display = 'none'; 
+            }
+
+        }
+        
+        
+
+        updateClosestPairVisibility();
+    });
+</script>
+</body>
+</html>

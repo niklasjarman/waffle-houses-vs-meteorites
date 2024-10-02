@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meteorite and Waffle Houses</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #map {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+        #distanceChart {
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Find Meteorite and Nearby Waffle Houses</h1>
+    <form id="meteoriteForm">
+        <label for="meteoriteName">Enter Meteorite Name:</label>
+        <input type="text" id="meteoriteName" name="meteoriteName">
+        <button type="submit">Search</button>
+    </form>
+    <div id="map"></div>
+    <canvas id="distanceChart" width="400" height="200"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script>
+        let myChart; 
+        let map; 
+        let meteoriteMarker;
+
+        document.getElementById("meteoriteForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const meteoriteName = document.getElementById("meteoriteName").value;
+            axios.get(`/api/closest_waffle_house_to_meteorites/meteorite_name/${meteoriteName}`)
+                .then(response => {
+                    const data = response.data.waffle_house[0];
+                    console.log("API Response:", data);
+                  
+                    const meteoriteLocation = {
+                        latitude: parseFloat(data.meteorite_latitude),
+                        longitude: parseFloat(data.meteorite_longitude)
+                    };
+                    console.log("Meteorite Location:", meteoriteLocation);
+                    const nearbyWaffleHouses = [{
+                        name: data.closest_waffle_house,
+                        latitude: parseFloat(data.wh_latitude),
+                        longitude: parseFloat(data.wh_longitude),
+                        distance: parseFloat(data.distance)
+                    }];
+                    resetMap(meteoriteLocation, nearbyWaffleHouses);
+                    displayChart(nearbyWaffleHouses);
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+
+        function resetMap(meteoriteLocation, nearbyWaffleHouses) {
+            if (map) {
+                map.remove();
+            }
+
+            map = L.map('map').setView([meteoriteLocation.latitude, meteoriteLocation.longitude], 10);
+            console.log("Map initialized with center:", [meteoriteLocation.latitude, meteoriteLocation.longitude]);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            const meteoriteIcon = L.icon({
+                iconUrl: 'static/meteorite.png',
+                iconSize: [32, 32], 
+                iconAnchor: [16, 16], 
+            });
+
+            const waffleHouseIcon = L.icon({
+                iconUrl: 'static/waffle.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+            });
+
+            meteoriteMarker = L.marker([meteoriteLocation.latitude, meteoriteLocation.longitude], { icon: meteoriteIcon }).addTo(map)
+                .bindPopup('Meteorite Location');
+
+            nearbyWaffleHouses.forEach(waffleHouse => {
+                if (!isNaN(waffleHouse.latitude) && !isNaN(waffleHouse.longitude)) {
+                    L.marker([waffleHouse.latitude, waffleHouse.longitude], { icon: waffleHouseIcon }).addTo(map)
+                        .bindPopup(waffleHouse.name);
+                }
+            });
+            console.log("Markers added to the map:", nearbyWaffleHouses);
+        }
+
+        function displayChart(nearbyWaffleHouses) {
+            const labels = nearbyWaffleHouses.map(item => item.name);
+            const distances = nearbyWaffleHouses.map(item => item.distance);
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const ctx = document.getElementById('distanceChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Distance (km)',
+                        data: distances,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

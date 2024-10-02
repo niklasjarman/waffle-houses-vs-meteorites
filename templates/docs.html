@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+            font-size: 36px;
+        }
+        h2 {
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: #007bff;
+            font-size: 24px;
+        }
+        p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 18px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .endpoint {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .endpoint h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>API Documentation</h1>
+    <h3>For any of this API, you can put the HTTP GET parameter ?response=xml at the end of the URL to retrieve the XML version.</h3>
+
+    <!-- Meteorite Landings API -->
+    <div class="endpoint">
+        <h2>Meteorite Landings API</h2>
+        <p>This API provides information about meteorite landings.</p>
+        <ul>
+            <li><strong>GET</strong> /api/meteorite_landings</li>
+            <p>Retrieves a list of all meteorite landings.</p>
+            <li><strong>GET</strong> /api/meteorite_landings/name/&lt;name&gt;</li>
+            <p>Retrieves information about a meteorite landing by its name.</p>
+            <li><strong>GET</strong> /api/meteorite_landings/type/&lt;recclass&gt;</li>
+            <p>Retrieves information about meteorite landings by their classification type.</p>
+            <li><strong>GET</strong> /api/meteorite_landings/min_mass/&lt;min_mass&gt;/max_mass/&lt;max_mass&gt;</li>
+            <p>Retrieves meteorite landings within a specified mass range.</p>
+            <li><strong>GET</strong> /api/meteorite_landings/type/&lt;recclass&gt;/year/&lt;year&gt;</li>
+            <p>Retrieves meteorite landings of a specific classification type within a given year.</p>
+        </ul>
+    </div>
+
+    <!-- Waffle Houses API -->
+    <div class="endpoint">
+        <h2>Waffle Houses API</h2>
+        <p>This API provides information about Waffle House locations.</p>
+        <ul>
+            <li><strong>GET</strong> /api/waffle_houses</li>
+            <p>Retrieves a list of all Waffle House locations.</p>
+            <li><strong>GET</strong> /api/waffle_houses/name/&lt;name&gt;</li>
+            <p>Retrieves a Waffle House location based on it's name.</p>
+            <li><strong>GET</strong> /api/waffle_houses/state/&lt;state&gt;</li>
+            <p>Retrieves Waffle House locations in a specific state.</p>
+            <li><strong>GET</strong> /api/waffle_houses/state/&lt;state&gt;/zipcode/&lt;zipcode&gt;</li>
+            <p>Retrieves Waffle House locations in a specific state with a given ZIP code.</p>
+            <li><strong>GET</strong> /api/waffle_houses/count_by_state</li>
+            <p>Retrieves the count of Waffle House locations in each state.</p>
+            <li><strong>GET</strong> /api/waffle_houses/count_by_state/state/&lt;state&gt;</li>
+            <p>Retrieves the count of Waffle House locations in a specific state.</p>
+        </ul>
+    </div>
+
+    <!-- Average Distance API -->
+    <div class="endpoint">
+        <h2>Average Distance API</h2>
+        <p>This API calculates the average distance between meteorite landings and Waffle House locations.</p>
+        <ul>
+            <li><strong>GET</strong> /api/average_distance</li>
+            <p>Calculates the overall average distance between meteorite landings and Waffle House locations.</p>
+            <li><strong>GET</strong> /api/average_distance/year/&lt;year&gt;</li>
+            <p>Calculates the average distance between meteorite landings and Waffle House locations for a specific year.</p>
+            <li><strong>GET</strong> /api/average_distance/year/&lt;year&gt;/waffle_house_state/&lt;state_initials&gt;</li>
+            <p>Calculates the average distance between meteorite landings and Waffle House locations for a specific year in a particular state (e.g., SC).</p>
+        </ul>
+    </div>
+
+    <!-- Closest Pairs API -->
+    <div class="endpoint">
+        <h2>Closest Pairs API</h2>
+        <p>This API finds the closest pairs of meteorite landings and Waffle House locations.</p>
+        <ul>
+            <li><strong>GET</strong> /api/closest_pairs?limit=num</li>
+            <p>Retrieves the closest pairs of meteorite landings and Waffle House locations, limited by the specified number.</p>
+            <li><strong>GET</strong> /api/closest_pairs/distance/&lt;distance&gt; (float)</li>
+            <p>Retrieves the closest pairs of meteorite landings and Waffle House locations within the given distance threshold.</p>
+        </ul>
+    </div>
+
+    <!-- Closest Meteorites API -->
+    <div class="endpoint">
+        <h2>Closest Meteorites API</h2>
+        <p>This API finds meteorite landings closest to a specific location.</p>
+        <ul>
+            <li><strong>GET</strong> /api/closest_meteorites/waffle_house_name/&lt;waffle_house_name&gt;</li>
+            <p>Retrieves meteorite landings closest to a specific Waffle House location by its name.</p>
+            <li><strong>GET</strong> /api/closest_meteorites_to_me/max_distance/&lt;distance&gt;</li>
+            <p>Retrieves meteorite landings closest to a given location within the specified distance.</p>
+        </ul>
+    </div>
+
+    <!-- Closest Waffle House to Meteorites API -->
+    <div class="endpoint">
+        <h2>Closest Waffle House to Meteorites API</h2>
+        <p>This API finds the closest Waffle House to a specific meteorite landing.</p>
+        <ul>
+            <li><strong>GET</strong> /api/closest_waffle_house_to_meteorites</li>
+            <p>Retrieves the closest Waffle House to each meteorite landing.</p>
+            <li><strong>GET</strong> /api/closest_waffle_house_to_meteorites/meteorite_name/&lt;name&gt;</li>
+            <p>Retrieves the closest Waffle House to a specific meteorite landing by its name.</p>
+        </ul>
+    </div>
+
+    <!-- Closest Waffle Houses to Me API -->
+    <div class="endpoint">
+        <h2>Closest Waffle Houses to Me API</h2>
+        <p>This API finds the closest Waffle Houses to a given location.</p>
+        <ul>
+            <li><strong>GET</strong> /api/closest_waffle_houses_to_me/max_distance/&lt;distance&gt;</li>
+            <p>Retrieves the closest Waffle Houses to a given location within the specified distance.</p>
+        </ul>
+    </div>
+
+    <!-- Closest Meteorites to Me API -->
+    <div class="endpoint">
+        <h2>Closest Meteorites to Me API</h2>
+        <p>This API finds the closest meteorite landings to a given location.</p>
+        <ul>
+            <li><strong>GET</strong> /api/closest_meteorites_to_me/max_distance/&lt;distance&gt;</li>
+            <p>Retrieves the closest meteorite landings to a given location within the specified distance.</p>
+        </ul>
+    </div>
+
+    <!-- Nearby Locations API -->
+    <div class="endpoint">
+        <h2>Nearby Locations API</h2>
+        <p>This API finds nearby locations based on latitude and longitude coordinates.</p>
+        <ul>
+            <li><strong>GET</strong> /api/nearby_locations/latitude/&lt;latitude&gt;/longitude/&lt;longitude&gt;</li>
+            <p>Retrieves nearby locations based on the provided latitude and longitude coordinates.</p>
+        </ul>
+    </div>
+    
+</div>
+
+</body>
+</html>

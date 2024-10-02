@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waffle Houses by State</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="waffleHousesChart" width="800" height="400"></canvas>
+    <script>
+        fetch('http://127.0.0.1:4000/api/waffle_houses/count_by_state')
+            .then(response => response.json())
+            .then(data => {
+                const states = data.states.map(entry => entry.state);
+                const numWaffleHouses = data.states.map(entry => entry.num_waffle_houses);
+
+                const ctx = document.getElementById('waffleHousesChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: states,
+                        datasets: [{
+                            label: 'Number of Waffle Houses',
+                            data: numWaffleHouses,
+                            backgroundColor: 'rgba(255, 165, 0, 0.5)',
+                            borderColor: 'rgba(255, 165, 0, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Waffle Houses'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'State'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    </script>
+</body>
+</html>
